@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# This is the custom topology for the SDN video streaming with load balancing
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Node, RemoteController
