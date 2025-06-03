@@ -1,0 +1,27 @@
+2025-06-03 14:19:27,155 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://172.21.200.42:5001
+2025-06-03 14:19:27,156 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-03 14:19:27,157 - werkzeug - INFO -  * Restarting with stat
+2025-06-03 14:20:41,953 - root - INFO - Started server1 on port 9001
+2025-06-03 14:20:41,955 - root - INFO - Started server2 on port 9002
+2025-06-03 14:20:41,957 - root - INFO - Started server3 on port 9003
+2025-06-03 14:20:41,959 - root - INFO - Started server4 on port 9004
+2025-06-03 14:20:41,992 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://172.21.200.42:5001
+2025-06-03 14:20:41,992 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-03 14:20:41,992 - werkzeug - INFO -  * Restarting with stat
+2025-06-03 14:20:42,104 - root - INFO - Started server1 on port 9005
+2025-06-03 14:20:42,105 - root - INFO - Started server2 on port 9006
+2025-06-03 14:20:42,107 - root - INFO - Started server3 on port 9007
+2025-06-03 14:20:42,108 - root - INFO - Started server4 on port 9008
+2025-06-03 14:20:42,126 - werkzeug - WARNING -  * Debugger is active!
+2025-06-03 14:20:42,133 - werkzeug - INFO -  * Debugger PIN: 111-002-466
+2025-06-03 14:20:47,024 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-06-03 14:20:47,044 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-06-03 14:20:47,046 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-06-03 14:20:47,080 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=TqTcugzGG6O1NlqLiChR HTTP/1.1" 200 -
+2025-06-03 14:20:47,136 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
