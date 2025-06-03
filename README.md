@@ -1,6 +1,4 @@
-Elbette! Aşağıda içeriği tamamen İngilizce'ye çevirilmiş, profesyonel görünümlü ve GitHub için ideal yapıya getirilmiş bir `README.md` dosyası bulabilirsin. Markdown biçimi GitHub ile %100 uyumludur.
 
----
 
 ````markdown
 # SDN Final Project: Video Streaming with Load Balancing (Mininet + Python)
