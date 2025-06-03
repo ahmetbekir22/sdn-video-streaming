@@ -58,8 +58,8 @@ def run():
     net = Mininet(topo=topo, controller=None, waitConnected=True)
     
     # Add remote controller
-    net.addController('c0', controller=RemoteController, ip="172.22.228.42", port=6653)
-    
+    net.addController('c0', controller=RemoteController, ip="127.0.0.1", port=6653)
+
     info('*** Starting network\n')
     net.start()
     
