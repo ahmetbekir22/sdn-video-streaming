@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # This is the custom topology for the SDN video streaming with load balancing
+# It is a 3-tier topology with 1 border switch, 3 core switches, 3 leaf switches, 5 video servers, and 1 client
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Node, RemoteController
