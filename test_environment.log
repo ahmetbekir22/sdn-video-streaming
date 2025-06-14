@@ -25,3 +25,55 @@
 2025-06-03 14:20:47,046 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
 2025-06-03 14:20:47,080 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=TqTcugzGG6O1NlqLiChR HTTP/1.1" 200 -
 2025-06-03 14:20:47,136 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-06-14 21:07:14,073 - root - INFO - Started server1 on port 9001
+2025-06-14 21:07:14,075 - root - INFO - Started server2 on port 9002
+2025-06-14 21:07:14,077 - root - INFO - Started server3 on port 9003
+2025-06-14 21:07:14,079 - root - INFO - Started server4 on port 9004
+2025-06-14 21:07:14,143 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://10.0.2.15:5001
+2025-06-14 21:07:14,154 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-14 21:07:14,157 - werkzeug - INFO -  * Restarting with stat
+2025-06-14 21:07:14,563 - root - INFO - Started server1 on port 9005
+2025-06-14 21:07:14,564 - root - INFO - Started server2 on port 9006
+2025-06-14 21:07:14,566 - root - INFO - Started server3 on port 9007
+2025-06-14 21:07:14,578 - root - INFO - Started server4 on port 9008
+2025-06-14 21:07:14,705 - werkzeug - WARNING -  * Debugger is active!
+2025-06-14 21:07:15,069 - werkzeug - INFO -  * Debugger PIN: 110-179-489
+2025-06-14 21:07:36,282 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:07:36] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-06-14 21:07:40,365 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:07:40] "GET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-06-14 21:07:40,394 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:07:40] "GET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-06-14 21:07:41,388 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:07:41] "GET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-06-14 21:07:41,672 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:07:41] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=oVFvWxWM7ChycBesmxwY HTTP/1.1" 200 -
+2025-06-14 21:10:38,630 - werkzeug - INFO -  * Detected change in '/mnt/sdn-video-streaming/dashboard/monitor.py', reloading
+2025-06-14 21:10:38,782 - werkzeug - INFO -  * Restarting with stat
+2025-06-14 21:10:40,882 - root - INFO - Started server1 on port 9005
+2025-06-14 21:10:40,902 - root - INFO - Started server2 on port 9006
+2025-06-14 21:10:40,927 - root - INFO - Started server3 on port 9007
+2025-06-14 21:10:40,946 - root - INFO - Started server4 on port 9008
+2025-06-14 21:10:41,138 - werkzeug - WARNING -  * Debugger is active!
+2025-06-14 21:10:41,163 - werkzeug - INFO -  * Debugger PIN: 110-179-489
+2025-06-14 21:12:37,091 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:12:37] "GET / HTTP/1.1" 200 -
+2025-06-14 21:12:43,292 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:12:43] "[33mGET /dash.all.debug.js HTTP/1.1[0m" 404 -
+2025-06-14 21:12:43,310 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:12:43] "[33mGET /highlighter.js HTTP/1.1[0m" 404 -
+2025-06-14 21:12:43,316 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:12:43] "[33mGET /main.css HTTP/1.1[0m" 404 -
+2025-06-14 21:12:43,335 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:12:43] "[33mGET /bootstrap.min.css HTTP/1.1[0m" 404 -
+2025-06-14 21:12:43,418 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:12:43] "[33mGET /dashjs-logo.png HTTP/1.1[0m" 404 -
+2025-06-14 21:12:47,135 - werkzeug - INFO - 127.0.0.1 - - [14/Jun/2025 21:12:47] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-14 21:15:59,410 - werkzeug - INFO -  * Detected change in '/mnt/sdn-video-streaming/dashboard/monitor.py', reloading
+2025-06-14 21:15:59,641 - werkzeug - INFO -  * Restarting with stat
+2025-06-14 21:16:00,382 - root - INFO - Started server1 on port 9005
+2025-06-14 21:16:00,384 - root - INFO - Started server2 on port 9006
+2025-06-14 21:16:00,387 - root - INFO - Started server3 on port 9007
+2025-06-14 21:16:00,391 - root - INFO - Started server4 on port 9008
+2025-06-14 21:16:00,433 - werkzeug - WARNING -  * Debugger is active!
+2025-06-14 21:16:00,440 - werkzeug - INFO -  * Debugger PIN: 110-179-489
+2025-06-14 21:17:13,848 - werkzeug - INFO -  * Detected change in '/mnt/sdn-video-streaming/dashboard/monitor.py', reloading
+2025-06-14 21:17:13,960 - werkzeug - INFO -  * Restarting with stat
+2025-06-14 21:17:14,522 - root - INFO - Started server1 on port 9005
+2025-06-14 21:17:14,525 - root - INFO - Started server2 on port 9006
+2025-06-14 21:17:14,527 - root - INFO - Started server3 on port 9007
+2025-06-14 21:17:14,532 - root - INFO - Started server4 on port 9008
+2025-06-14 21:17:14,586 - werkzeug - WARNING -  * Debugger is active!
+2025-06-14 21:17:14,588 - werkzeug - INFO -  * Debugger PIN: 110-179-489

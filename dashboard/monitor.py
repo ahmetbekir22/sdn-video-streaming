@@ -17,7 +17,7 @@ import logging
 # Now import the TestEnvironment
 from test.test_environment import TestEnvironment
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=str(project_root / 'se3506'), static_folder=str(project_root / 'se3506'), static_url_path='/')
 test_env = TestEnvironment()
 stats_history = []
 
