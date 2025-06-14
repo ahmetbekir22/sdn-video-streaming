@@ -1,6 +1,8 @@
 requests>=2.31.0
-mininet>=2.3.1
 ryu>=4.34
 python-iptables>=1.0.0
 flask>=2.0.1
-flask-cors>=3.0.10 
+flask-cors>=3.0.10
+dash>=2.14.2
+dash-player>=0.0.1
+setuptools<66

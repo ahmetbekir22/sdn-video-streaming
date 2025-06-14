@@ -5,11 +5,11 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
-from ryu.lib.packet import packet, ethernet, ipv4, tcp
+from ryu.lib.packet import packet, ethernet, ipv4, tcp, arp
 from ryu.lib import hub
-import json
+
 import logging
-from load_balancer import LoadBalancer, Server, LoadBalancingAlgorithm
+from controller.load_balancer import LoadBalancer, Server, LoadBalancingAlgorithm
 
 # Configure logging
 logging.basicConfig(
@@ -26,61 +26,55 @@ class VideoStreamingController(app_manager.RyuApp):
 
     def __init__(self, *args, **kwargs):
         super(VideoStreamingController, self).__init__(*args, **kwargs)
-        
-        # Initialize load balancer
+
         self.load_balancer = LoadBalancer(algorithm=LoadBalancingAlgorithm.ROUND_ROBIN)
-        
-        # Add video servers
         self.servers = [
             Server(id=f'server{i}', ip=f'10.0.{i}.2', weight=1)
             for i in range(1, 5)
         ]
         for server in self.servers:
             self.load_balancer.add_server(server)
-        
-        # Store switch information
+
         self.switches = {}
         self.mac_to_port = {}
-        
-        # Start monitoring thread
         self.monitor_thread = hub.spawn(self._monitor)
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
-        """Handle switch features event."""
         datapath = ev.msg.datapath
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
-        # Install table-miss flow entry
         match = parser.OFPMatch()
-        actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                        ofproto.OFPCML_NO_BUFFER)]
+        actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER, ofproto.OFPCML_NO_BUFFER)]
         self.add_flow(datapath, 0, match, actions)
 
-        # Store switch information
+        match = parser.OFPMatch(eth_type=0x0800, ip_proto=1)
+        self.add_flow(datapath, 1, match, [parser.OFPActionOutput(ofproto.OFPP_FLOOD)])
+
+        match = parser.OFPMatch(eth_type=0x0806)
+        self.add_flow(datapath, 1, match, [parser.OFPActionOutput(ofproto.OFPP_FLOOD)])
+
         self.switches[datapath.id] = datapath
         self.mac_to_port[datapath.id] = {}
 
     def add_flow(self, datapath, priority, match, actions, buffer_id=None):
-        """Add a flow entry to the switch."""
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
+        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
 
-        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
-                                           actions)]
         if buffer_id:
             mod = parser.OFPFlowMod(datapath=datapath, buffer_id=buffer_id,
-                                  priority=priority, match=match,
-                                  instructions=inst)
+                                    priority=priority, match=match, instructions=inst)
         else:
             mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
-                                  match=match, instructions=inst)
+                                    match=match, instructions=inst)
         datapath.send_msg(mod)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
-        """Handle packet in events."""
+        print(">>> PACKET_IN geldi")
+
         msg = ev.msg
         datapath = msg.datapath
         ofproto = datapath.ofproto
@@ -95,62 +89,118 @@ class VideoStreamingController(app_manager.RyuApp):
         dpid = datapath.id
         self.mac_to_port[dpid][src] = in_port
 
-        # Check if this is an IP packet
+        arp_pkt = pkt.get_protocol(arp.arp)
+        if arp_pkt:
+            self._handle_arp(datapath, in_port, eth, arp_pkt)
+            return
+
         ip_header = pkt.get_protocol(ipv4.ipv4)
-        if ip_header:
-            # Check if this is a TCP packet
-            tcp_header = pkt.get_protocol(tcp.tcp)
-            if tcp_header and tcp_header.dst_port == 8000:  # HTTP port
-                # This is a video streaming request
-                self._handle_video_request(datapath, in_port, ip_header, tcp_header)
-                return
+        tcp_header = pkt.get_protocol(tcp.tcp)
 
-        # Handle other packets (ARP, etc.)
-        if dst in self.mac_to_port[dpid]:
-            out_port = self.mac_to_port[dpid][dst]
+        if not ip_header:
+            print(">>> IP paketi yok")
         else:
-            out_port = ofproto.OFPP_FLOOD
+            print(f">>> IP paketi: {ip_header.src} -> {ip_header.dst}")
 
+        if not tcp_header:
+            print(">>> TCP paketi yok")
+        else:
+            print(f">>> TCP paketi: src={tcp_header.src_port}, dst={tcp_header.dst_port}")
+
+        if tcp_header and tcp_header.dst_port == 8000:
+            self._handle_video_request(datapath, in_port, ip_header, tcp_header)
+            return
+
+        out_port = self.mac_to_port[dpid].get(dst, ofproto.OFPP_FLOOD)
         actions = [parser.OFPActionOutput(out_port)]
-        
-        # Install flow entry
+
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
             self.add_flow(datapath, 1, match, actions)
 
-        out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
-                                in_port=in_port, actions=actions)
+        out = parser.OFPPacketOut(datapath=datapath,
+                                  buffer_id=msg.buffer_id,
+                                  in_port=in_port,
+                                  actions=actions)
         datapath.send_msg(out)
 
-    def _handle_video_request(self, datapath, in_port, ip_header, tcp_header):
-        """Handle video streaming requests."""
+    def _handle_arp(self, datapath, in_port, eth, arp_pkt):
         parser = datapath.ofproto_parser
-        
-        # Get next server using load balancer
+        ofproto = datapath.ofproto
+
+        if arp_pkt.opcode == arp.ARP_REQUEST:
+            target_ip = arp_pkt.dst_ip
+            target_mac = None
+            for dpid, mac_port in self.mac_to_port.items():
+                for mac, port in mac_port.items():
+                    if mac == target_ip:
+                        target_mac = mac
+                        break
+
+            if target_mac:
+                arp_reply = packet.Packet()
+                arp_reply.add_protocol(ethernet.ethernet(ethertype=eth.ethertype,
+                                                         dst=eth.src,
+                                                         src=target_mac))
+                arp_reply.add_protocol(arp.arp(opcode=arp.ARP_REPLY,
+                                               src_mac=target_mac,
+                                               src_ip=target_ip,
+                                               dst_mac=eth.src,
+                                               dst_ip=arp_pkt.src_ip))
+                arp_reply.serialize()
+
+                actions = [parser.OFPActionOutput(in_port)]
+                out = parser.OFPPacketOut(datapath=datapath,
+                                          buffer_id=ofproto.OFP_NO_BUFFER,
+                                          in_port=ofproto.OFPP_CONTROLLER,
+                                          actions=actions,
+                                          data=arp_reply.data)
+                datapath.send_msg(out)
+            else:
+                actions = [parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
+                out = parser.OFPPacketOut(datapath=datapath,
+                                          buffer_id=ofproto.OFP_NO_BUFFER,
+                                          in_port=in_port,
+                                          actions=actions,
+                                          data=msg.data)
+                datapath.send_msg(out)
+
+        elif arp_pkt.opcode == arp.ARP_REPLY:
+            self.mac_to_port[datapath.id][arp_pkt.src_mac] = in_port
+            actions = [parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
+            out = parser.OFPPacketOut(datapath=datapath,
+                                      buffer_id=ofproto.OFP_NO_BUFFER,
+                                      in_port=in_port,
+                                      actions=actions,
+                                      data=msg.data)
+            datapath.send_msg(out)
+
+    def _handle_video_request(self, datapath, in_port, ip_header, tcp_header):
+        parser = datapath.ofproto_parser
+
         try:
             server = self.load_balancer.get_next_server()
             logging.info(f"Selected server {server.id} for request from {ip_header.src}")
-            
-            # Create flow entry for this connection
+
             match = parser.OFPMatch(
-                eth_type=0x0800,  # IPv4
+                eth_type=0x0800,
                 ipv4_src=ip_header.src,
                 ipv4_dst=ip_header.dst,
-                ip_proto=6,  # TCP
+                ip_proto=6,
                 tcp_src=tcp_header.src_port,
                 tcp_dst=tcp_header.dst_port
             )
-            
-            # Forward to selected server
-            actions = [parser.OFPActionOutput(self.mac_to_port[datapath.id][server.ip])]
+
+            out_port = self.mac_to_port[datapath.id].get(server.ip)
+            if out_port is None:
+                raise ValueError("No out port for server IP")
+
+            actions = [parser.OFPActionOutput(out_port)]
             self.add_flow(datapath, 2, match, actions)
-            
-            # Update server statistics
-            self.load_balancer.update_server_stats(server.id, 0, 0)  # Initial stats
-            
+            self.load_balancer.update_server_stats(server.id, 0, 0)
+
         except ValueError as e:
             logging.error(f"Error selecting server: {str(e)}")
-            # Flood the packet if no server is available
             actions = [parser.OFPActionOutput(datapath.ofproto.OFPP_FLOOD)]
             out = parser.OFPPacketOut(
                 datapath=datapath,
@@ -161,14 +211,12 @@ class VideoStreamingController(app_manager.RyuApp):
             datapath.send_msg(out)
 
     def _monitor(self):
-        """Monitor thread for collecting statistics."""
         while True:
             for dp in self.switches.values():
                 self._request_stats(dp)
-            hub.sleep(10)  # Collect stats every 10 seconds
+            hub.sleep(10)
 
     def _request_stats(self, datapath):
-        """Request flow and port statistics from switch."""
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
 
@@ -180,20 +228,15 @@ class VideoStreamingController(app_manager.RyuApp):
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
     def _flow_stats_reply_handler(self, ev):
-        """Handle flow statistics reply."""
         body = ev.msg.body
         logging.info('Flow Stats:')
         for stat in body:
-            logging.info(f'Match: {stat.match}, '
-                        f'Packets: {stat.packet_count}, '
-                        f'Bytes: {stat.byte_count}')
+            logging.info(f'Match: {stat.match}, Packets: {stat.packet_count}, Bytes: {stat.byte_count}')
 
     @set_ev_cls(ofp_event.EventOFPPortStatsReply, MAIN_DISPATCHER)
     def _port_stats_reply_handler(self, ev):
-        """Handle port statistics reply."""
         body = ev.msg.body
         logging.info('Port Stats:')
         for stat in body:
-            logging.info(f'Port: {stat.port_no}, '
-                        f'Rx Bytes: {stat.rx_bytes}, '
-                        f'Tx Bytes: {stat.tx_bytes}') 
+            logging.info(f'Port: {stat.port_no}, Rx Bytes: {stat.rx_bytes}, Tx Bytes: {stat.tx_bytes}')
+

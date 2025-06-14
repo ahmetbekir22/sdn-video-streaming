@@ -1,2 +1,10 @@
 se3506/
 .DS_Store
+# Python virtual environments
+venv/
+venv39/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
