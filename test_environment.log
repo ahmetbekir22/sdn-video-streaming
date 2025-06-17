@@ -25,3 +25,109 @@
 2025-06-03 14:20:47,046 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
 2025-06-03 14:20:47,080 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=TqTcugzGG6O1NlqLiChR HTTP/1.1" 200 -
 2025-06-03 14:20:47,136 - werkzeug - INFO - 127.0.0.1 - - [03/Jun/2025 14:20:47] "GET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-06-16 21:45:25,897 - root - INFO - Started server1 on port 9001
+2025-06-16 21:45:25,903 - root - INFO - Started server2 on port 9002
+2025-06-16 21:45:25,906 - root - INFO - Started server3 on port 9003
+2025-06-16 21:45:25,909 - root - INFO - Started server4 on port 9004
+2025-06-16 21:45:25,924 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.64.6:5001
+2025-06-16 21:45:25,924 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-16 21:45:25,924 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 21:45:26,022 - root - INFO - Started server1 on port 9005
+2025-06-16 21:45:26,025 - root - INFO - Started server2 on port 9006
+2025-06-16 21:45:26,030 - root - INFO - Started server3 on port 9007
+2025-06-16 21:45:26,033 - root - INFO - Started server4 on port 9008
+2025-06-16 21:45:26,038 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 21:45:26,039 - werkzeug - INFO -  * Debugger PIN: 128-400-317
+2025-06-16 21:45:30,085 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "GET / HTTP/1.1" 200 -
+2025-06-16 21:45:30,102 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /dash.all.debug.js HTTP/1.1[0m" 404 -
+2025-06-16 21:45:30,105 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /bootstrap.min.css HTTP/1.1[0m" 404 -
+2025-06-16 21:45:30,107 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /main.css HTTP/1.1[0m" 404 -
+2025-06-16 21:45:30,108 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /highlighter.js HTTP/1.1[0m" 404 -
+2025-06-16 21:45:30,111 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /dashjs-logo.png HTTP/1.1[0m" 404 -
+2025-06-16 21:45:30,126 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /bootstrap.min.css HTTP/1.1[0m" 404 -
+2025-06-16 21:45:30,141 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /highlighter.js HTTP/1.1[0m" 404 -
+2025-06-16 21:45:30,153 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:30] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-16 21:45:32,171 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:32] "GET / HTTP/1.1" 200 -
+2025-06-16 21:45:32,179 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:32] "[33mGET /dash.all.debug.js HTTP/1.1[0m" 404 -
+2025-06-16 21:45:32,180 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:32] "[33mGET /highlighter.js HTTP/1.1[0m" 404 -
+2025-06-16 21:45:32,181 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:32] "[33mGET /bootstrap.min.css HTTP/1.1[0m" 404 -
+2025-06-16 21:45:32,181 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:32] "[33mGET /main.css HTTP/1.1[0m" 404 -
+2025-06-16 21:45:32,182 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 21:45:32] "[33mGET /dashjs-logo.png HTTP/1.1[0m" 404 -
+2025-06-16 22:04:52,313 - werkzeug - INFO -  * Detected change in '/home/ahmetbekir/sdn-video-streaming/controller/sdn_controller.py', reloading
+2025-06-16 22:04:52,335 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 22:04:52,558 - root - INFO - Started server1 on port 9005
+2025-06-16 22:04:52,562 - root - INFO - Started server2 on port 9006
+2025-06-16 22:04:52,564 - root - INFO - Started server3 on port 9007
+2025-06-16 22:04:52,566 - root - INFO - Started server4 on port 9008
+2025-06-16 22:04:52,573 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 22:04:52,573 - werkzeug - INFO -  * Debugger PIN: 128-400-317
+2025-06-16 22:08:16,722 - werkzeug - INFO -  * Detected change in '/home/ahmetbekir/sdn-video-streaming/controller/sdn_controller.py', reloading
+2025-06-16 22:08:16,740 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 22:08:16,847 - root - INFO - Started server1 on port 9005
+2025-06-16 22:08:16,849 - root - INFO - Started server2 on port 9006
+2025-06-16 22:08:16,852 - root - INFO - Started server3 on port 9007
+2025-06-16 22:08:16,854 - root - INFO - Started server4 on port 9008
+2025-06-16 22:08:16,860 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 22:08:16,860 - werkzeug - INFO -  * Debugger PIN: 128-400-317
+2025-06-16 22:09:09,603 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:09:09] "GET / HTTP/1.1" 200 -
+2025-06-16 22:09:09,628 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:09:09] "[33mGET /dash.all.debug.js HTTP/1.1[0m" 404 -
+2025-06-16 22:09:09,628 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:09:09] "[33mGET /bootstrap.min.css HTTP/1.1[0m" 404 -
+2025-06-16 22:09:09,629 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:09:09] "[33mGET /main.css HTTP/1.1[0m" 404 -
+2025-06-16 22:09:09,630 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:09:09] "[33mGET /highlighter.js HTTP/1.1[0m" 404 -
+2025-06-16 22:09:09,630 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:09:09] "[33mGET /dashjs-logo.png HTTP/1.1[0m" 404 -
+2025-06-16 22:09:09,648 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:09:09] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-16 22:11:17,726 - werkzeug - INFO -  * Detected change in '/home/ahmetbekir/sdn-video-streaming/controller/sdn_controller.py', reloading
+2025-06-16 22:11:17,751 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 22:11:17,871 - root - INFO - Started server1 on port 9005
+2025-06-16 22:11:17,874 - root - INFO - Started server2 on port 9006
+2025-06-16 22:11:17,880 - root - INFO - Started server3 on port 9007
+2025-06-16 22:11:17,883 - root - INFO - Started server4 on port 9008
+2025-06-16 22:11:17,890 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 22:11:17,890 - werkzeug - INFO -  * Debugger PIN: 128-400-317
+2025-06-16 22:27:52,314 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:27:52] "GET / HTTP/1.1" 200 -
+2025-06-16 22:27:52,334 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:27:52] "[33mGET /dash.all.debug.js HTTP/1.1[0m" 404 -
+2025-06-16 22:27:52,335 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:27:52] "[33mGET /highlighter.js HTTP/1.1[0m" 404 -
+2025-06-16 22:27:52,336 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:27:52] "[33mGET /bootstrap.min.css HTTP/1.1[0m" 404 -
+2025-06-16 22:27:52,335 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:27:52] "[33mGET /main.css HTTP/1.1[0m" 404 -
+2025-06-16 22:27:52,344 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:27:52] "[33mGET /dashjs-logo.png HTTP/1.1[0m" 404 -
+2025-06-16 22:31:44,507 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:31:44] "GET / HTTP/1.1" 200 -
+2025-06-16 22:31:44,524 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:31:44] "[33mGET /dash.all.debug.js HTTP/1.1[0m" 404 -
+2025-06-16 22:31:44,525 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:31:44] "[33mGET /main.css HTTP/1.1[0m" 404 -
+2025-06-16 22:31:44,526 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:31:44] "[33mGET /bootstrap.min.css HTTP/1.1[0m" 404 -
+2025-06-16 22:31:44,527 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:31:44] "[33mGET /highlighter.js HTTP/1.1[0m" 404 -
+2025-06-16 22:31:44,528 - werkzeug - INFO - 127.0.0.1 - - [16/Jun/2025 22:31:44] "[33mGET /dashjs-logo.png HTTP/1.1[0m" 404 -
+2025-06-16 22:37:27,861 - werkzeug - INFO -  * Detected change in '/home/ahmetbekir/sdn-video-streaming/controller/sdn_controller.py', reloading
+2025-06-16 22:37:27,886 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 22:37:28,138 - root - INFO - Started server1 on port 9005
+2025-06-16 22:37:28,141 - root - INFO - Started server2 on port 9006
+2025-06-16 22:37:28,144 - root - INFO - Started server3 on port 9007
+2025-06-16 22:37:28,148 - root - INFO - Started server4 on port 9008
+2025-06-16 22:37:28,158 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 22:37:28,159 - werkzeug - INFO -  * Debugger PIN: 128-400-317
+2025-06-16 22:43:01,345 - werkzeug - INFO -  * Detected change in '/home/ahmetbekir/sdn-video-streaming/controller/sdn_controller.py', reloading
+2025-06-16 22:43:01,363 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 22:43:01,465 - root - INFO - Started server1 on port 9005
+2025-06-16 22:43:01,468 - root - INFO - Started server2 on port 9006
+2025-06-16 22:43:01,471 - root - INFO - Started server3 on port 9007
+2025-06-16 22:43:01,474 - root - INFO - Started server4 on port 9008
+2025-06-16 22:43:01,479 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 22:43:01,479 - werkzeug - INFO -  * Debugger PIN: 128-400-317
+2025-06-16 22:45:17,188 - werkzeug - INFO -  * Detected change in '/home/ahmetbekir/sdn-video-streaming/controller/sdn_controller.py', reloading
+2025-06-16 22:45:17,204 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 22:45:17,309 - root - INFO - Started server1 on port 9005
+2025-06-16 22:45:17,314 - root - INFO - Started server2 on port 9006
+2025-06-16 22:45:17,316 - root - INFO - Started server3 on port 9007
+2025-06-16 22:45:17,318 - root - INFO - Started server4 on port 9008
+2025-06-16 22:45:17,323 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 22:45:17,324 - werkzeug - INFO -  * Debugger PIN: 128-400-317
+2025-06-16 23:23:48,521 - werkzeug - INFO -  * Detected change in '/home/ahmetbekir/sdn-video-streaming/controller/sdn_controller.py', reloading
+2025-06-16 23:23:48,554 - werkzeug - INFO -  * Restarting with stat
+2025-06-16 23:23:48,798 - root - INFO - Started server1 on port 9005
+2025-06-16 23:23:48,801 - root - INFO - Started server2 on port 9006
+2025-06-16 23:23:48,803 - root - INFO - Started server3 on port 9007
+2025-06-16 23:23:48,806 - root - INFO - Started server4 on port 9008
+2025-06-16 23:23:48,813 - werkzeug - WARNING -  * Debugger is active!
+2025-06-16 23:23:48,815 - werkzeug - INFO -  * Debugger PIN: 128-400-317

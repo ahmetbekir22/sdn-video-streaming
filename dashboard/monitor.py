@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import sys
 from pathlib import Path
@@ -17,7 +16,16 @@ import logging
 # Now import the TestEnvironment
 from test.test_environment import TestEnvironment
 
-app = Flask(__name__)
+# Define paths for templates and static files
+frontend_dir = Path("/home/ahmetbekir/sdn-video-streaming/se3506")
+template_dir = frontend_dir
+static_dir = frontend_dir / "static"  # Assuming static files are in a 'static' subdirectory
+
+# Create Flask app with custom template and static directories
+app = Flask(__name__, 
+           template_folder=str(template_dir),
+           static_folder=str(static_dir) if static_dir.exists() else None)
+
 test_env = TestEnvironment()
 stats_history = []
 
@@ -54,13 +62,33 @@ def simulate_request(video_name):
     success = test_env.simulate_request(client_ip, f"bbb_{video_name}.mp4")
     return jsonify({'success': success})
 
+# Add route to serve static files if no static folder is configured
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """Serve static files from the frontend directory."""
+    return app.send_from_directory(str(frontend_dir), filename)
+
 def main():
+    # Verify paths exist
+    if not frontend_dir.exists():
+        print(f"Warning: Frontend directory does not exist: {frontend_dir}")
+    else:
+        print(f"Frontend directory found: {frontend_dir}")
+        
+    if not (frontend_dir / "index.html").exists():
+        print(f"Warning: index.html not found in: {frontend_dir}")
+    else:
+        print(f"index.html found in: {frontend_dir}")
+    
     # Start stats collection in background
     collector = Thread(target=collect_stats, daemon=True)
     collector.start()
     
     # Start Flask app on port 5001 instead of 5000
+    print(f"Starting Flask app...")
+    print(f"Template directory: {template_dir}")
+    print(f"Static directory: {static_dir}")
     app.run(host='0.0.0.0', port=5001, debug=True)
 
 if __name__ == '__main__':
-    main() 
+    main()

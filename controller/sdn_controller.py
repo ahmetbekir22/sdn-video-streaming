@@ -2,23 +2,17 @@
 
 from ryu.base import app_manager
 from ryu.controller import ofp_event
-from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
-from ryu.controller.handler import set_ev_cls
+from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, set_ev_cls
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet, ethernet, ipv4, tcp, arp
 from ryu.lib import hub
-
 import logging
-from controller.load_balancer import LoadBalancer, Server, LoadBalancingAlgorithm
+from load_balancer import LoadBalancer, Server, LoadBalancingAlgorithm
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('controller.log'),
-        logging.StreamHandler()
-    ]
+    format='%(asctime)s %(levelname)s %(message)s',
+    handlers=[logging.FileHandler('controller.log'), logging.StreamHandler()]
 )
 
 class VideoStreamingController(app_manager.RyuApp):
@@ -26,217 +20,187 @@ class VideoStreamingController(app_manager.RyuApp):
 
     def __init__(self, *args, **kwargs):
         super(VideoStreamingController, self).__init__(*args, **kwargs)
-
-        self.load_balancer = LoadBalancer(algorithm=LoadBalancingAlgorithm.ROUND_ROBIN)
-        self.servers = [
-            Server(id=f'server{i}', ip=f'10.0.{i}.2', weight=1)
-            for i in range(1, 5)
-        ]
-        for server in self.servers:
-            self.load_balancer.add_server(server)
-
+        # Load balancer
+        self.lb = LoadBalancer(algorithm=LoadBalancingAlgorithm.ROUND_ROBIN)
+        for i in range(1, 5):
+            self.lb.add_server(Server(id=f'server{i}', ip=f'10.0.{i}.2', weight=1))
+        # State
         self.switches = {}
         self.mac_to_port = {}
-        self.monitor_thread = hub.spawn(self._monitor)
+        self.ip_to_mac = {}
+        # Stats thread
+        hub.spawn(self._monitor)
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
-        datapath = ev.msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
+        dp = ev.msg.datapath
+        ofp, parser = dp.ofproto, dp.ofproto_parser
 
-        match = parser.OFPMatch()
-        actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER, ofproto.OFPCML_NO_BUFFER)]
-        self.add_flow(datapath, 0, match, actions)
+        # Initialize per‐switch maps
+        self.switches[dp.id]   = dp
+        self.mac_to_port[dp.id] = {}
+        self.ip_to_mac[dp.id]   = {}
 
-        match = parser.OFPMatch(eth_type=0x0800, ip_proto=1)
-        self.add_flow(datapath, 1, match, [parser.OFPActionOutput(ofproto.OFPP_FLOOD)])
+        # 0) ARP → flood (en yüksek öncelik)
+        self.add_flow(dp, 4,
+                      parser.OFPMatch(eth_type=0x0806),
+                      [parser.OFPActionOutput(ofp.OFPP_FLOOD)])
+        # 1) ICMP → flood (öncelik 3)
+        self.add_flow(dp, 3,
+                      parser.OFPMatch(eth_type=0x0800, ip_proto=1),
+                      [parser.OFPActionOutput(ofp.OFPP_FLOOD)])
+        # 2) ARP → controller (öncelik 2)
+        self.add_flow(dp, 2,
+                      parser.OFPMatch(eth_type=0x0806),
+                      [parser.OFPActionOutput(ofp.OFPP_CONTROLLER, ofp.OFPCML_NO_BUFFER)])
+        # 3) Default → controller
+        self.add_flow(dp, 0,
+                      parser.OFPMatch(),
+                      [parser.OFPActionOutput(ofp.OFPP_CONTROLLER, ofp.OFPCML_NO_BUFFER)])
 
-        match = parser.OFPMatch(eth_type=0x0806)
-        self.add_flow(datapath, 1, match, [parser.OFPActionOutput(ofproto.OFPP_FLOOD)])
+        logging.info(f"Switch {dp.id} ready")
 
-        self.switches[datapath.id] = datapath
-        self.mac_to_port[datapath.id] = {}
-
-    def add_flow(self, datapath, priority, match, actions, buffer_id=None):
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
-        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
-
-        if buffer_id:
-            mod = parser.OFPFlowMod(datapath=datapath, buffer_id=buffer_id,
-                                    priority=priority, match=match, instructions=inst)
+    def add_flow(self, dp, prio, match, actions, buffer_id=None, idle_timeout=0, hard_timeout=0):
+        ofp, parser = dp.ofproto, dp.ofproto_parser
+        inst = [parser.OFPInstructionActions(ofp.OFPIT_APPLY_ACTIONS, actions)]
+        if buffer_id is not None:
+            mod = parser.OFPFlowMod(dp, buffer_id=buffer_id, priority=prio,
+                                    match=match, instructions=inst,
+                                    idle_timeout=idle_timeout, hard_timeout=hard_timeout)
         else:
-            mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
-                                    match=match, instructions=inst)
-        datapath.send_msg(mod)
+            mod = parser.OFPFlowMod(dp, priority=prio,
+                                    match=match, instructions=inst,
+                                    idle_timeout=idle_timeout, hard_timeout=hard_timeout)
+        dp.send_msg(mod)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
-        print(">>> PACKET_IN geldi")
+        msg, dp = ev.msg, ev.msg.datapath
+        ofp, parser = dp.ofproto, dp.ofproto_parser
+        in_port, dpid = msg.match['in_port'], dp.id
 
-        msg = ev.msg
-        datapath = msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
-        in_port = msg.match['in_port']
+        # Ensure maps exist
+        if dpid not in self.mac_to_port:
+            self.mac_to_port[dpid] = {}
+            self.ip_to_mac[dpid]   = {}
 
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocols(ethernet.ethernet)[0]
-        dst = eth.dst
-        src = eth.src
+        src, dst = eth.src, eth.dst
 
-        dpid = datapath.id
+        # Learn MAC
         self.mac_to_port[dpid][src] = in_port
 
+        # ARP?
+        if pkt.get_protocol(arp.arp):
+            return self._handle_arp(dp, in_port, msg)
+
+        # IPv4?
+        ip_hdr = pkt.get_protocol(ipv4.ipv4)
+        if ip_hdr:
+            # Learn IP→MAC
+            self.ip_to_mac[dpid][ip_hdr.src] = src
+            # Video TCP?
+            tcp_hdr = pkt.get_protocol(tcp.tcp)
+            if tcp_hdr and tcp_hdr.dst_port == 8000:
+                return self._handle_video_request(dp, in_port, ip_hdr, tcp_hdr, msg)
+
+        # Default switching
+        return self._handle_normal_switching(dp, in_port, msg)
+
+    def _handle_arp(self, dp, port, msg):
+        ofp, parser, dpid = dp.ofproto, dp.ofproto_parser, dp.id
+        pkt = packet.Packet(msg.data)
         arp_pkt = pkt.get_protocol(arp.arp)
-        if arp_pkt:
-            self._handle_arp(datapath, in_port, eth, arp_pkt)
-            return
 
-        ip_header = pkt.get_protocol(ipv4.ipv4)
-        tcp_header = pkt.get_protocol(tcp.tcp)
-
-        if not ip_header:
-            print(">>> IP paketi yok")
-        else:
-            print(f">>> IP paketi: {ip_header.src} -> {ip_header.dst}")
-
-        if not tcp_header:
-            print(">>> TCP paketi yok")
-        else:
-            print(f">>> TCP paketi: src={tcp_header.src_port}, dst={tcp_header.dst_port}")
-
-        if tcp_header and tcp_header.dst_port == 8000:
-            self._handle_video_request(datapath, in_port, ip_header, tcp_header)
-            return
-
-        out_port = self.mac_to_port[dpid].get(dst, ofproto.OFPP_FLOOD)
-        actions = [parser.OFPActionOutput(out_port)]
-
-        if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
-            self.add_flow(datapath, 1, match, actions)
-
-        out = parser.OFPPacketOut(datapath=datapath,
-                                  buffer_id=msg.buffer_id,
-                                  in_port=in_port,
-                                  actions=actions)
-        datapath.send_msg(out)
-
-    def _handle_arp(self, datapath, in_port, eth, arp_pkt):
-        parser = datapath.ofproto_parser
-        ofproto = datapath.ofproto
+        # Learn ARP
+        self.ip_to_mac[dpid][arp_pkt.src_ip] = arp_pkt.src_mac
+        self.mac_to_port[dpid][arp_pkt.src_mac] = port
 
         if arp_pkt.opcode == arp.ARP_REQUEST:
-            target_ip = arp_pkt.dst_ip
-            target_mac = None
-            for dpid, mac_port in self.mac_to_port.items():
-                for mac, port in mac_port.items():
-                    if mac == target_ip:
-                        target_mac = mac
-                        break
-
-            if target_mac:
-                arp_reply = packet.Packet()
-                arp_reply.add_protocol(ethernet.ethernet(ethertype=eth.ethertype,
-                                                         dst=eth.src,
-                                                         src=target_mac))
-                arp_reply.add_protocol(arp.arp(opcode=arp.ARP_REPLY,
-                                               src_mac=target_mac,
-                                               src_ip=target_ip,
-                                               dst_mac=eth.src,
-                                               dst_ip=arp_pkt.src_ip))
-                arp_reply.serialize()
-
-                actions = [parser.OFPActionOutput(in_port)]
-                out = parser.OFPPacketOut(datapath=datapath,
-                                          buffer_id=ofproto.OFP_NO_BUFFER,
-                                          in_port=ofproto.OFPP_CONTROLLER,
-                                          actions=actions,
-                                          data=arp_reply.data)
-                datapath.send_msg(out)
+            tgt_mac = self.ip_to_mac[dpid].get(arp_pkt.dst_ip)
+            if tgt_mac:
+                # Send ARP reply
+                reply = packet.Packet()
+                reply.add_protocol(ethernet.ethernet(
+                    ethertype=0x0806, src=tgt_mac, dst=arp_pkt.src_mac))
+                reply.add_protocol(arp.arp(
+                    opcode=arp.ARP_REPLY,
+                    src_mac=tgt_mac, src_ip=arp_pkt.dst_ip,
+                    dst_mac=arp_pkt.src_mac, dst_ip=arp_pkt.src_ip))
+                reply.serialize()
+                data = reply.data
+                actions = [parser.OFPActionOutput(port)]
             else:
-                actions = [parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
-                out = parser.OFPPacketOut(datapath=datapath,
-                                          buffer_id=ofproto.OFP_NO_BUFFER,
-                                          in_port=in_port,
-                                          actions=actions,
-                                          data=msg.data)
-                datapath.send_msg(out)
+                data = msg.data
+                actions = [parser.OFPActionOutput(ofp.OFPP_FLOOD)]
+        else:
+            data = msg.data
+            actions = [parser.OFPActionOutput(ofp.OFPP_FLOOD)]
 
-        elif arp_pkt.opcode == arp.ARP_REPLY:
-            self.mac_to_port[datapath.id][arp_pkt.src_mac] = in_port
-            actions = [parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
-            out = parser.OFPPacketOut(datapath=datapath,
-                                      buffer_id=ofproto.OFP_NO_BUFFER,
-                                      in_port=in_port,
-                                      actions=actions,
-                                      data=msg.data)
-            datapath.send_msg(out)
+        out = parser.OFPPacketOut(dp,
+                                  buffer_id=ofp.OFP_NO_BUFFER,
+                                  in_port=ofp.OFPP_CONTROLLER,
+                                  actions=actions,
+                                  data=data)
+        dp.send_msg(out)
 
-    def _handle_video_request(self, datapath, in_port, ip_header, tcp_header):
-        parser = datapath.ofproto_parser
+    def _handle_normal_switching(self, dp, port, msg):
+        ofp, parser, dpid = dp.ofproto, dp.ofproto_parser, dp.id
+        pkt = packet.Packet(msg.data)
+        eth = pkt.get_protocols(ethernet.ethernet)[0]
+        dst, src = eth.dst, eth.src
 
-        try:
-            server = self.load_balancer.get_next_server()
-            logging.info(f"Selected server {server.id} for request from {ip_header.src}")
-
-            match = parser.OFPMatch(
-                eth_type=0x0800,
-                ipv4_src=ip_header.src,
-                ipv4_dst=ip_header.dst,
-                ip_proto=6,
-                tcp_src=tcp_header.src_port,
-                tcp_dst=tcp_header.dst_port
-            )
-
-            out_port = self.mac_to_port[datapath.id].get(server.ip)
-            if out_port is None:
-                raise ValueError("No out port for server IP")
-
+        if dst in self.mac_to_port[dpid]:
+            out_port = self.mac_to_port[dpid][dst]
             actions = [parser.OFPActionOutput(out_port)]
-            self.add_flow(datapath, 2, match, actions)
-            self.load_balancer.update_server_stats(server.id, 0, 0)
+            match = parser.OFPMatch(in_port=port, eth_src=src, eth_dst=dst)
+            self.add_flow(dp, 1, match, actions, idle_timeout=10)
+            data = msg.data
+        else:
+            actions = [parser.OFPActionOutput(ofp.OFPP_FLOOD)]
+            data = msg.data
 
-        except ValueError as e:
-            logging.error(f"Error selecting server: {str(e)}")
-            actions = [parser.OFPActionOutput(datapath.ofproto.OFPP_FLOOD)]
-            out = parser.OFPPacketOut(
-                datapath=datapath,
-                buffer_id=datapath.ofproto.OFP_NO_BUFFER,
-                in_port=in_port,
-                actions=actions
+        out = parser.OFPPacketOut(dp,
+                                  buffer_id=ofp.OFP_NO_BUFFER,
+                                  in_port=port,
+                                  actions=actions,
+                                  data=data)
+        dp.send_msg(out)
+
+    def _handle_video_request(self, dp, port, ip_hdr, tcp_hdr, msg):
+        ofp, parser, dpid = dp.ofproto, dp.ofproto_parser, dp.id
+        srv = self.lb.get_next_server()
+        srv_mac = self.ip_to_mac[dpid].get(srv.ip)
+        srv_port = self.mac_to_port[dpid].get(srv_mac)
+        if not srv_mac or not srv_port:
+            actions = [parser.OFPActionOutput(ofp.OFPP_FLOOD)]
+            data = msg.data
+        else:
+            match = parser.OFPMatch(
+                eth_type=0x0800, ip_proto=6,
+                ipv4_src=ip_hdr.src, ipv4_dst=ip_hdr.dst,
+                tcp_src=tcp_hdr.src_port, tcp_dst=tcp_hdr.dst_port
             )
-            datapath.send_msg(out)
+            actions = [
+                parser.OFPActionSetField(ipv4_dst=srv.ip),
+                parser.OFPActionSetField(eth_dst=srv_mac),
+                parser.OFPActionOutput(srv_port)
+            ]
+            self.add_flow(dp, 10, match, actions, idle_timeout=30, hard_timeout=300)
+            data = msg.data
+
+        out = parser.OFPPacketOut(dp,
+                                  buffer_id=ofp.OFP_NO_BUFFER,
+                                  in_port=port,
+                                  actions=actions,
+                                  data=data)
+        dp.send_msg(out)
 
     def _monitor(self):
         while True:
             for dp in self.switches.values():
-                self._request_stats(dp)
+                dp.send_msg(dp.ofproto_parser.OFPFlowStatsRequest(dp))
+                dp.send_msg(dp.ofproto_parser.OFPPortStatsRequest(dp, 0, dp.ofproto.OFPP_ANY))
             hub.sleep(10)
-
-    def _request_stats(self, datapath):
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
-
-        req = parser.OFPFlowStatsRequest(datapath)
-        datapath.send_msg(req)
-
-        req = parser.OFPPortStatsRequest(datapath, 0, ofproto.OFPP_ANY)
-        datapath.send_msg(req)
-
-    @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
-    def _flow_stats_reply_handler(self, ev):
-        body = ev.msg.body
-        logging.info('Flow Stats:')
-        for stat in body:
-            logging.info(f'Match: {stat.match}, Packets: {stat.packet_count}, Bytes: {stat.byte_count}')
-
-    @set_ev_cls(ofp_event.EventOFPPortStatsReply, MAIN_DISPATCHER)
-    def _port_stats_reply_handler(self, ev):
-        body = ev.msg.body
-        logging.info('Port Stats:')
-        for stat in body:
-            logging.info(f'Port: {stat.port_no}, Rx Bytes: {stat.rx_bytes}, Tx Bytes: {stat.tx_bytes}')
 
