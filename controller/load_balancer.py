@@ -102,4 +102,3 @@ class LoadBalancer:
             if (current_time - server.last_request_time) > timeout:
                 server.current_connections = max(0, server.current_connections - 1)
                 logging.info(f"Cleaned up old connection for {server.id}")
-

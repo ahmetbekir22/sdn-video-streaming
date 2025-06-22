@@ -1,97 +1,22 @@
+# SDN Video Streaming with Load Balancing
 
-
-````markdown
-# SDN Final Project: Video Streaming with Load Balancing (Mininet + Python)
-
-## 📘 Section 1 – Project Overview (What You Need to Do)
-
-This section provides a comprehensive breakdown of all tasks to complete the project successfully.
-
-###  1. Build the Network: Mininet Topology
-- You need to create a **custom network topology** using Mininet.
-- The network should include:
-  - 1 **border switch (S1)**
-  - 2–3 **intermediate/core switches (S2–S4)**
-  - 3 **leaf switches (S5–S7)**
-  - 4 **video servers (Server1–Server4)**
-  - At least 1 **client**
-- This topology should be written in a Python file (e.g., `custom_topo.py`).
+## Overview
+This project implements a Software-Defined Networking (SDN) based video streaming platform with dynamic load balancing. Using Mininet for network emulation and a Ryu-based SDN controller, the system distributes client video requests across multiple servers using various load balancing algorithms. The project includes a real-time monitoring dashboard and a comprehensive test environment for validation.
 
 ---
 
-###  2. Implement the SDN Controller
-- Use an SDN controller such as **POX** or **Ryu**.
-- The controller should:
-  - Act like a DNS system to intercept client requests (e.g., for "netflix.com").
-  - Decide which server should handle the request.
-  - Push the appropriate **flow rules** to the network switches.
+## Architecture
+- **Mininet Topology**: Custom topology with 1 border switch, 3 core switches, 3 leaf switches, 4 video servers, and 1 client.
+- **SDN Controller**: Ryu application that intercepts client requests, applies load balancing, and manages OpenFlow rules.
+- **Load Balancer**: Modular, supports Random, Round Robin, Weighted Round Robin, Bandwidth-Aware, and Request Demand algorithms.
+- **Video Servers**: Python HTTP servers streaming video files.
+- **Client**: Python script for listing and downloading videos.
+- **Dashboard**: Flask-based web dashboard for real-time monitoring.
+- **Test Environment**: Automated simulation and validation tools.
 
 ---
 
-###  3. Implement Load Balancing Logic
-- Integrate a load balancing algorithm into your controller:
-  - `Random`
-  - `Round Robin`
-  - `Weighted Round Robin`
-  - `Bandwidth-Aware`
-  - `Request Demand Based`
-- Each incoming client request should be forwarded to the most appropriate server based on the selected algorithm.
-
----
-
-###  4. Simulate Video Streaming
-- On each server, run a lightweight HTTP server using Python:
-  ```bash
-  python3 -m http.server
-````
-
-* From the client node, request video files using tools like `curl` or `wget`.
-* The controller should dynamically manage the routing of these requests.
-
----
-
-###  5. Create a Dashboard or Logging System (Optional but Recommended)
-
-* Build a simple monitoring interface to visualize:
-
-  * Active servers
-  * Server load statistics
-  * Real-time traffic details (who requested what, and from which server)
-
----
-
-###  6. Prepare Final Report & Presentation
-
-* Prepare a short but clear report explaining:
-
-  * Your architecture and flow
-  * Chosen algorithms and rationale
-  * Test results and screenshots
-  * Challenges faced and how you overcame them
-
----
-
-##  Section 2 – How to Do It (Languages, Tools, and Tips)
-
-This section details the technologies you'll use and best practices to follow.
-
----
-
-###  Languages & Tools to Use
-
-| Component            | Language / Tool                |
-| -------------------- | ------------------------------ |
-| Network Topology     | Python (Mininet API)           |
-| SDN Controller       | Python (POX or Ryu)            |
-| Load Balancing Logic | Python                         |
-| Video Servers        | Python (`http.server`)         |
-| Client Testing       | Bash (`curl`, `wget`, `iperf`) |
-| Dashboard (Optional) | Python (Flask/Dash) or HTML/JS |
-
----
-
-### 🗂 Recommended Project Structure
-
+## Directory Structure
 ```
 sdn-video-streaming/
 │
@@ -99,74 +24,104 @@ sdn-video-streaming/
 │   └── custom_topo.py              # Mininet topology definition
 │
 ├── controller/
-│   └── sdn_controller.py           # SDN controller with load balancing logic
+│   ├── sdn_controller.py           # Ryu SDN controller
+│   ├── load_balancer.py            # Load balancing logic
+│   └── __init__.py
 │
 ├── servers/
-│   ├── server1/
-│   │   └── video.mp4
-│   └── server2/ ...
+│   └── server.py                   # Video streaming server
 │
 ├── client/
-│   └── test_client.sh              # Shell script for client testing
+│   └── test_client.py              # Client for video requests
 │
-├── dashboard/                      # Optional dashboard implementation
-│   └── monitor.py
+├── dashboard/
+│   └── monitor.py                  # Flask dashboard
+│   └── __init__.py
 │
-├── logs/
-│   └── traffic_log.txt             # Logging traffic or results
+├── test/
+│   └── test_environment.py         # Automated test environment
+│   └── __init__.py
 │
-└── README.md                       # This documentation
+├── requirements.txt                # Python dependencies
+├── README.md                       # Project documentation
+└── ...
 ```
 
 ---
 
-###  Key Considerations & Best Practices
+## Setup Instructions
 
-1. **Flow Control**
+### 1. Prerequisites
+- Python 3.7+
+- Mininet (for network emulation)
+- Ryu SDN Framework
+- (Optional) Flask for dashboard
 
-   * Your controller must install correct flow rules for each new connection.
-   * You can verify this using `dpctl dump-flows` or Ryu’s REST API.
-
-2. **Connectivity Testing**
-
-   * Test the connectivity between nodes using tools like `ping`, `iperf`, and `curl`.
-   * You can inspect network traffic using `tcpdump` or `Wireshark`.
-
-3. **Algorithm Strategy**
-
-   * Start with simple algorithms like `round robin`.
-   * If time allows, implement dynamic strategies based on bandwidth or latency.
-
-4. **Time Management**
-
-   * Begin with topology creation, then build the controller, and finally integrate load balancing.
-   * Add the dashboard if there is time left.
-
----
-
-###  Suggested Development Order
-
-1. Create the Mininet topology.
-2. Develop and run the Python-based SDN controller (POX or Ryu).
-3. Add your load balancing algorithm.
-4. Launch HTTP servers and test client requests.
-5. Implement dashboard or logging (optional).
-6. Document and finalize the report.
-
----
-
-### 📚 Helpful Resources
-
-* [Mininet Walkthrough](http://mininet.org/walkthrough/)
-* [POX Controller Wiki](https://openflow.stanford.edu/display/ONL/POX+Wiki)
-* [Ryu SDN Framework](https://osrg.github.io/ryu/)
-* [Python HTTP Server](https://docs.python.org/3/library/http.server.html)
-
----
-
-**Good luck! You’re building a real SDN-driven video service router 🚀**
-
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
 ```
+
+### 3. Mininet Topology
+Run the custom topology:
+```bash
+sudo python3 topo/custom_topo.py
+```
+This will launch the Mininet CLI and start HTTP servers on each video server node.
+
+### 4. SDN Controller
+In a separate terminal, start the Ryu controller:
+```bash
+ryu-manager controller/sdn_controller.py
+```
+
+### 5. Video Servers
+Servers are started automatically by the topology script. To run standalone:
+```bash
+python3 servers/server.py
+```
+
+### 6. Client
+Use the provided client to list and download videos:
+```bash
+python3 client/test_client.py --server http://<server-ip>:8000
+```
+
+### 7. Dashboard (Optional)
+To launch the monitoring dashboard:
+```bash
+python3 dashboard/monitor.py
+```
+Access the dashboard at [http://localhost:5001](http://localhost:5001).
+
+---
+
+## Load Balancing Algorithms
+- **Random**: Selects a server at random.
+- **Round Robin**: Cycles through servers sequentially.
+- **Weighted Round Robin**: Considers server weights and current connections.
+- **Bandwidth-Aware**: Chooses the server with the lowest bandwidth usage.
+- **Request Demand Based**: Selects based on current connections and response time.
+
+Algorithm selection can be configured in `controller/sdn_controller.py`.
+
+---
+
+## Testing
+The `test/test_environment.py` script simulates the network, servers, and client requests for automated testing and validation. It can be used to:
+- Simulate video requests
+- Validate load balancing logic
+- Collect performance statistics
+
+---
+
+## Troubleshooting & Tips
+- Ensure all dependencies are installed and Mininet is running with root privileges.
+- Use `ryu-manager` for the controller and verify the correct OpenFlow version (1.3).
+- Check log files (`controller.log`, `server.log`, `client.log`, `test_environment.log`) for detailed error messages.
+- For network issues, use Mininet CLI tools (`pingall`, `iperf`, `dpctl dump-flows`).
+
+---
 
 ---
 

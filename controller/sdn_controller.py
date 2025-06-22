@@ -203,4 +203,3 @@ class VideoStreamingController(app_manager.RyuApp):
                 dp.send_msg(dp.ofproto_parser.OFPFlowStatsRequest(dp))
                 dp.send_msg(dp.ofproto_parser.OFPPortStatsRequest(dp, 0, dp.ofproto.OFPP_ANY))
             hub.sleep(10)
-
