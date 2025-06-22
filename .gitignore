@@ -1,4 +1,4 @@
-se3506/
+# .gitignore
 .DS_Store
 # Python virtual environments
 venv/
@@ -8,3 +8,5 @@ __pycache__/
 *.pyo
 *.pyd
 *.log
+
+
